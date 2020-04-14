@@ -1,0 +1,17 @@
+.headerthing {
+    /*background-image: url(./honey-yanibel-minaya-cruz-6gSyEKq4Pvg-unsplash.jpg);*/
+}
+.map {
+    height: 400px;
+    width: 600px;
+}
+
+.mdl-grid.center-items {
+    justify-content: center;
+}
+
+#satpic {
+    height: 400px;
+    width: 600px;
+    background-color: black;
+}

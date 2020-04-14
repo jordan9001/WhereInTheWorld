@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where in the World</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.green-indigo.min.css" />
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <link rel="stylesheet" href="stylething.css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/css/ol.css" type="text/css">
+</head>
+<body>
+    <div class="mdl-layout">
+        <header class="mdl-layout__header headerthing">
+            <div class="mdl-layout__header-row">
+                <h2>Where in the World?</h2>
+            </div>
+        </header>
+        <main class="mdl-grid mdl-layout__content center-items">
+            <div class="mdl-cell mdl-cell--6-col mdl-cell--middle">
+                <canvas id="satpic" width=600 height=400></canvas>
+                <!-- <img id="satpic" src="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=Landsat_WELD_CorrectedReflectance_TrueColor_Global_Monthly&FORMAT=image%2Fpng&TRANSPARENT=false&HEIGHT=400&WIDTH=600&CRS=EPSG:4326&BBOX=-18,27,-13.5,31.5"></img> -->
+            </div>
+            <div class="mdl-cell mdl-cell--6-col mdl-cell--middle">
+                <div id="map" class="map"></div>
+            </div>
+            <div class="mdl-cell mdl-cell--4-col mdl-cell--bottom">
+                <div class="mdl-grid center-items">
+                    <div class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--8dp mdl-color--accent-contrast">
+                        <div class="mdl-card__title">
+                            <h4 class="mdl-cart__title-text">Settings</h4>
+                        </div>
+                        <div class="mdl-card__supporting-text">
+                            <form action="#">
+                                <label for="setZoom">Size = <span id="zoomval">1.5</span></label>
+                                <input id="setZoom" class="mdl-slider mdl-js-slider" type="range"
+                                    min="0.01" max="15" value="1.5" step="0.01"/>
+                                <label for="setSpeed">Speed = <span id="speedval">1.0</span></label>
+                                <input id="setSpeed" class="mdl-slider mdl-js-slider" type="range"
+                                    min="-6.9" max="6.9" value="1.0", step="0.01", />
+                                <label for="setMap">Map</label>
+                                <select id="setMap" value="0">
+                                </select>
+                            </form>
+                        </div>
+                        <div class="mdl-card__actions mdl-card--border">
+                            <button id="submitbtn" class="mdl-button mdl-button--primary mdl-button--raised mdl-js-button mdl-js-ripple-effect" disabled>
+                            Guess
+                            </button>
+                            <button id="nextbtn" class="mdl-button mdl-button--primary mdl-button--raised mdl-js-button mdl-js-ripple-effect">
+                            Next Map
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script src="./game.js" defer></script>
+    </div>
+</body>
+</html>
