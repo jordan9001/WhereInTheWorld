@@ -1,29 +1,65 @@
 "use strict";
 
-// set up simple map
-var map = new ol.Map({
-    target: 'map',
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.OSM()
-        })
-    ],
-    view: new ol.View({
-        center: ol.proj.fromLonLat([0.0,0.0]),
-        zoom: 0
-    })
-});
-//TODO add interaction
-
 // game
 var satpic = document.getElementById("satpic");
 var ctx = satpic.getContext("2d");
 var nextbtn = document.getElementById("nextbtn");
+var submitbtn = document.getElementById("submitbtn");
 var setZoom = document.getElementById("setZoom");
 var zoomval = document.getElementById("zoomval");
 var setSpeed = document.getElementById("setSpeed");
 var speedval = document.getElementById("speedval");
 var setMap = document.getElementById("setMap");
+
+var currentLat = 0;
+var currentLng = 0;
+var currentGuess = undefined;
+var ans = undefined;
+
+// set up map
+var map = L.map('map', {
+    center: [0,0],
+    zoom: 1,
+    worldCopyJump: true,
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+map.on("click", function(e) {
+    if (currentGuess === undefined) {
+        currentGuess = L.marker(e.latlng, {
+            draggable: true,
+            autoPan: true
+        }).addTo(map);
+    } else {
+        currentGuess.setLatLng(e.latlng);
+    }
+    submitbtn.disabled = false;
+});
+
+submitbtn.onclick = function() {
+    submitbtn.disabled = true;
+
+    if (ans !== undefined) {
+        ans.removeFrom(map);
+        ans = undefined;
+    }
+    ans = L.marker([currentLat, currentLng]).addTo(map);
+    let pos = currentGuess.getLatLng();
+    let delta_lat = Math.abs(currentLat - pos.lat);
+    let delta_lng = Math.abs(currentLng - pos.lng);
+
+    while (delta_lng > 180) {
+        console.log("here");
+        delta_lng -= 180;
+    }
+
+    let delta = Math.sqrt((delta_lat * delta_lat)+(delta_lng * delta_lng));
+
+    ans.bindPopup("You were off by "+ delta +" degrees squared").openPopup();
+}
 
 setZoom.onchange = function() {
     zoomval.innerText = setZoom.value;
@@ -35,7 +71,7 @@ setSpeed.onchange = function() {
 var maps = [
     {
         name: "Landsat_WELD_CorrectedReflectance_TrueColor_Global_Monthly",
-        title: "Surface Reflectance (NBAR, True Color, Global, Monthly, v3.x, Landsat / WELD)",
+        title: "Monthly Reflectance",
         west: -180,
         east: 180,
         south: -90,
@@ -43,10 +79,11 @@ var maps = [
         start: new Date("1998-12-01"),
         end: new Date("2001-11-01"),
         per: 1,
-        perunit: "M" // D M Y
+        perunit: "M"
     }
 ];
 
+var toset = 0;
 function updateselect() {
     // clear
     while (setMap.length > 0) {
@@ -59,6 +96,9 @@ function updateselect() {
         option.value = i;
         setMap.add(option);
     }
+
+    // move the choice to where it is in the value
+    setMap.value = toset;
 }
 
 var images = [];
@@ -78,12 +118,18 @@ function imgdisp(ts) {
         imgind = images.length - 1;
     }
 
+    var sv = setSpeed.value;
+
     // display image
     var img = images[imgind];
     if (img.loadedandready) {
         ctx.drawImage(images[imgind], 0, 0);
     } else {
-        imgind += 1;
+        if (sv > 0.0) {
+            imgind += 1;
+        } else {
+            imgind -= 1;
+        }
         window.requestAnimationFrame(imgdisp);
         return;
     }
@@ -91,12 +137,11 @@ function imgdisp(ts) {
     //TODO draw center spot
 
     var dt = ts - prevts;
-    var sv = setSpeed.value;
     if ((sv != 0) && (dt > 300/Math.abs(sv))) {
         prevts = ts;
         if (sv > 0.0) {
             imgind += 1;
-        } else if (sv < -0.0) {
+        } else if (sv < 0.0) {
             imgind -= 1;
         }
     }
@@ -108,6 +153,18 @@ function getGameForLatLong(m, lat, long) {
     var w = satpic.width;
     var zoom = Number(setZoom.value);
     var wzoom = zoom * w / h;
+
+    currentLat = lat;
+    currentLng = long;
+    if (currentGuess !== undefined) {
+        currentGuess.removeFrom(map);
+        currentGuess = undefined;
+        submitbtn.disabled = true;
+    }
+    if (ans !== undefined) {
+        ans.removeFrom(map);
+        ans = undefined;
+    }
     
     // box bottom, left, top, right
     // box south, west, north, east
@@ -309,6 +366,11 @@ function getMapInfo() {
                             per: per,
                             perunit: perunit
                         });
+
+                        if (name == "MODIS_Aqua_CorrectedReflectance_TrueColor") {
+                            // my favorite
+                            toset = "" + (maps.length - 1);
+                        }
                     }
                 }
             }
@@ -319,6 +381,9 @@ function getMapInfo() {
     x.open("GET", "http://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0", true);
     x.send();
 }
+
+
+//TODO add interaction
 
 // let things loose
 updateselect();
